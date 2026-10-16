@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f7f7f4">
+  <meta name="description" content="整理今天的行程、完成待辦，為每一天留下一點成長。">
+  <title>日常練習室｜個人成長與任務管理</title>
+  <style>
+    :root { color-scheme:light; --ink:#263746; --muted:#718391; --paper:#f3f9fc; --white:#fff; --green:#438db5; --green-light:#e3f2fa; --line:#e1edf3; --shadow:0 16px 45px rgb(44 111 148 / 8%); }
+    * { box-sizing:border-box; }
+    body { margin:0; min-width:320px; background:var(--paper); color:var(--ink); font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif; font-size:15px; line-height:1.65; }
+    button,input,textarea { font:inherit; } button { cursor:pointer; }
+    .shell { width:min(1080px,calc(100% - 48px)); margin:0 auto; }
+    header { height:76px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--line); }
+    .brand { display:inline-flex; align-items:center; gap:11px; font-weight:700; letter-spacing:.04em; }
+    .brand-mark { width:34px; height:34px; display:grid; place-items:center; border-radius:11px; background:var(--green); color:white; font-size:18px; }
+    .header-note { color:var(--muted); font-size:13px; }
+    main { padding:49px 0 72px; } .greeting { margin-bottom:28px; }
+    .eyebrow { color:var(--green); font-size:12px; font-weight:700; letter-spacing:.16em; }
+    h1 { margin:6px 0 4px; font-size:clamp(27px,4vw,36px); line-height:1.35; letter-spacing:.025em; }
+    .today { color:var(--muted); font-size:14px; }
+    .quote { margin:0 0 30px; padding:16px 20px; border-left:3px solid #82bad8; border-radius:0 10px 10px 0; background:#eaf5fb; color:#496c80; font-size:14px; }
+    .dashboard { display:grid; grid-template-columns:minmax(0,1.12fr) minmax(300px,.88fr); gap:22px; align-items:start; }
+    .column { display:grid; gap:22px; min-width:0; }
+    .card { min-width:0; padding:23px 24px; border:1px solid #edede7; border-radius:16px; background:var(--white); box-shadow:var(--shadow); }
+    .card-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:18px; }
+    .card-heading h2 { margin:0; font-size:18px; letter-spacing:.025em; } .section-icon { margin-right:7px; font-size:16px; }
+    .small-label { color:var(--muted); font-size:12px; }
+    .schedule-list,.task-list { display:grid; }
+    .schedule-item { display:grid; grid-template-columns:66px minmax(0,1fr); gap:12px; padding:13px 0; border-top:1px solid var(--line); }
+    .schedule-item:first-child { border-top:0; padding-top:1px; } .schedule-item:last-child { padding-bottom:0; }
+    .schedule-time { padding-top:1px; color:var(--green); font-size:13px; font-weight:700; font-variant-numeric:tabular-nums; }
+    .schedule-title { font-size:14px; font-weight:600; } .schedule-place { margin-top:2px; color:var(--muted); font-size:12px; }
+    .task-progress { color:var(--muted); font-size:12px; white-space:nowrap; }
+    .task-item { display:flex; align-items:center; gap:8px; padding:13px 0; border-top:1px solid var(--line); }
+    .task-item:first-child { border-top:0; padding-top:1px; } .task-item:last-child { padding-bottom:0; }
+    .task-actions,.schedule-actions { display:flex; flex:0 0 auto; gap:5px; }
+    .task-actions { margin-left:auto; }
+    .item-action { padding:4px 7px; border:1px solid #dceaf1; border-radius:6px; background:#f7fbfd; color:#507b93; font-size:11px; line-height:1.4; }
+    .item-action:hover { border-color:#9bc5dc; background:#eaf5fb; }
+    .item-action.delete { border-color:#f0e1dd; background:#fffafa; color:#a36d64; }
+    .item-action.delete:hover { border-color:#dfb4aa; background:#fff0ed; }
+    .task-editor { min-width:0; flex:1; height:34px; padding:5px 8px; border:1px solid #82bad8; border-radius:6px; outline:none; font-size:13px; }
+    .task-check { width:19px; height:19px; flex:0 0 19px; margin:0; accent-color:var(--green); cursor:pointer; }
+    .task-copy { min-width:0; flex:1; font-size:14px; overflow-wrap:anywhere; }
+    .task-item.is-done .task-copy { color:#969a91; text-decoration:line-through; }
+    .task-tag { flex:0 0 auto; padding:3px 8px; border-radius:20px; background:#e8f3f8; color:#56788c; font-size:11px; }
+    .task-item:nth-child(2) .task-tag { background:#eef2f8; color:#64788e; } .task-item:nth-child(3) .task-tag { background:var(--green-light); color:var(--green); }
+    .task-form { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:9px; margin-top:17px; }
+    .task-form input { min-width:0; height:42px; padding:9px 12px; border:1px solid #dce8ef; border-radius:8px; outline:none; background:#fff; color:var(--ink); font-size:13px; }
+    .task-form input:focus { border-color:#82bad8; box-shadow:0 0 0 3px rgb(67 141 181 / 12%); }
+    .task-add-button { min-width:82px; padding:0 13px; border:0; border-radius:8px; background:var(--green); color:white; font-size:13px; font-weight:600; }
+    .task-add-button:hover { background:#33789e; }
+
+    .form-card { background:#f9fcfe; } .form-intro { margin:-11px 0 19px; color:var(--muted); font-size:13px; }
+    .field { margin-bottom:14px; } .field label { display:block; margin-bottom:6px; color:#51584f; font-size:12px; font-weight:600; }
+    .field input,.field textarea { display:block; width:100%; min-height:42px; padding:10px 12px; border:1px solid #e6e7df; border-radius:8px; outline:none; background:white; color:var(--ink); font-size:13px; }
+    .field input:focus,.field textarea:focus { border-color:#82bad8; box-shadow:0 0 0 3px rgb(67 141 181 / 12%); }
+    .field textarea { min-height:72px; resize:vertical; } .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .submit-button { width:100%; min-height:43px; border:0; border-radius:9px; background:var(--green); color:white; font-size:14px; font-weight:600; transition:background .2s,transform .2s; }
+    .submit-button:hover { transform:translateY(-1px); background:#405841; }
+    .added-list { display:grid; } .added-item { display:grid; grid-template-columns:54px minmax(0,1fr) auto; gap:10px; align-items:start; padding:11px 0; border-top:1px solid var(--line); }
+    .added-item time { color:var(--green); font-size:12px; font-weight:700; } .added-title { font-size:13px; font-weight:600; overflow-wrap:anywhere; }
+    .added-place { color:var(--muted); font-size:12px; overflow-wrap:anywhere; } .empty-note { color:var(--muted); font-size:13px; }
+    .schedule-editor { width:100%; min-width:0; padding:6px 8px; border:1px solid #82bad8; border-radius:6px; outline:none; font-size:12px; }
+    footer { padding:20px 0 27px; border-top:1px solid var(--line); color:var(--muted); text-align:center; font-size:12px; }
+    @media (max-width:700px) {
+      .shell { width:min(calc(100% - 32px),520px); } header { height:65px; }
+      .header-note { max-width:130px; text-align:right; font-size:11px; } main { padding:35px 0 48px; }
+      .greeting { margin-bottom:22px; } .quote { margin-bottom:20px; padding:13px 15px; }
+      .dashboard { grid-template-columns:minmax(0,1fr); gap:17px; } .column { gap:17px; } .card { padding:20px 18px; }
+      .task-form { grid-template-columns:minmax(0,1fr) auto; gap:8px; } .task-add-button { min-width:76px; padding:0 10px; }
+    }
+    @media (max-width:380px) {
+      .shell { width:calc(100% - 24px); } .card { padding:18px 14px; }
+      .schedule-item { grid-template-columns:58px minmax(0,1fr); gap:8px; } .task-tag { padding:3px 6px; font-size:10px; } .form-row { gap:8px; }
+    }
+  </style>
+</head>
+<body>
+  <header class="shell">
+    <a class="brand" href="#top" aria-label="日常練習室首頁" style="color:inherit;text-decoration:none;">
+      <span class="brand-mark" aria-hidden="true">✳</span><span>日常練習室</span>
+    </a>
+    <span class="header-note">慢慢來，也是在前進。</span>
+  </header>
+  <main class="shell" id="top">
+    <section class="greeting" aria-labelledby="page-title">
+      <div class="eyebrow">YOUR DAILY SPACE</div>
+      <h1 id="page-title">把今天，過成喜歡的樣子。</h1>
+      <div class="today" id="today-date" aria-live="polite"></div>
+    </section>
+    <p class="quote">「不需要一次到達，只要比昨天的自己更靠近一點。」</p>
+    <div class="dashboard">
+      <div class="column">
+        <section class="card" aria-labelledby="schedule-heading">
+          <div class="card-heading"><h2 id="schedule-heading"><span class="section-icon" aria-hidden="true">◷</span>今日行程</h2><span class="small-label">固定安排</span></div>
+          <div class="schedule-list">
+            <article class="schedule-item"><time class="schedule-time" datetime="09:00">09:00</time><div><div class="schedule-title">晨間閱讀與規劃</div><div class="schedule-place">在家・給自己一段安靜時間</div></div></article>
+            <article class="schedule-item"><time class="schedule-time" datetime="13:30">13:30</time><div><div class="schedule-title">專注學習時段</div><div class="schedule-place">圖書館・完成今日學習目標</div></div></article>
+            <article class="schedule-item"><time class="schedule-time" datetime="18:00">18:00</time><div><div class="schedule-title">散步與身心充電</div><div class="schedule-place">附近公園・讓思緒慢下來</div></div></article>
+          </div>
+        </section>
+        <section class="card" aria-labelledby="tasks-heading">
+          <div class="card-heading"><h2 id="tasks-heading"><span class="section-icon" aria-hidden="true">☑</span>今日待辦</h2><span class="task-progress" id="task-progress" aria-live="polite">0 / 3 完成</span></div>
+          <div class="task-list" id="task-list">
+            <label class="task-item"><input class="task-check" type="checkbox"><span class="task-copy">整理本週學習筆記</span><span class="task-tag">學習</span><span class="task-actions"><button class="item-action" type="button" data-action="edit" aria-label="編輯待辦事項">編輯</button><button class="item-action delete" type="button" data-action="delete" aria-label="刪除待辦事項">刪除</button></span></label>
+            <label class="task-item"><input class="task-check" type="checkbox"><span class="task-copy">完成課堂設計練習</span><span class="task-tag">重要</span><span class="task-actions"><button class="item-action" type="button" data-action="edit" aria-label="編輯待辦事項">編輯</button><button class="item-action delete" type="button" data-action="delete" aria-label="刪除待辦事項">刪除</button></span></label>
+            <label class="task-item"><input class="task-check" type="checkbox"><span class="task-copy">睡前寫下今日感想</span><span class="task-tag">習慣</span><span class="task-actions"><button class="item-action" type="button" data-action="edit" aria-label="編輯待辦事項">編輯</button><button class="item-action delete" type="button" data-action="delete" aria-label="刪除待辦事項">刪除</button></span></label>
+          </div>
+          <form class="task-form" id="task-form">
+            <label for="new-task" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">新增待辦事項</label>
+            <input id="new-task" name="task" type="text" placeholder="輸入新的待辦事項…" maxlength="80" required>
+            <button class="task-add-button" type="submit">＋ 新增</button>
+          </form>
+        </section>
+      </div>
+      <div class="column">
+        <section class="card form-card" aria-labelledby="form-heading">
+          <div class="card-heading"><h2 id="form-heading"><span class="section-icon" aria-hidden="true">＋</span>新增行程</h2></div>
+          <p class="form-intro">留一點空間，安排接下來的計畫。</p>
+          <form id="schedule-form">
+            <div class="field"><label for="event-title">行程名稱</label><input id="event-title" name="title" type="text" placeholder="例如：和朋友喝咖啡" maxlength="60" required></div>
+            <div class="form-row">
+              <div class="field"><label for="event-time">開始時間</label><input id="event-time" name="time" type="time" required></div>
+              <div class="field"><label for="event-place">地點</label><input id="event-place" name="place" type="text" placeholder="選填" maxlength="50"></div>
+            </div>
+            <div class="field"><label for="event-note">備註</label><textarea id="event-note" name="note" placeholder="想記下的提醒……" maxlength="180"></textarea></div>
+            <button class="submit-button" type="submit">＋　加入今日行程</button>
+          </form>
+        </section>
+        <section class="card" aria-labelledby="added-heading">
+          <div class="card-heading"><h2 id="added-heading"><span class="section-icon" aria-hidden="true">✦</span>我的加碼行程</h2><span class="small-label">本次瀏覽有效</span></div>
+          <div class="added-list" id="added-list" aria-live="polite"><p class="empty-note" id="empty-note">還沒有新增行程，安排一件期待的小事吧。</p></div>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer class="shell">每一個小小的完成，都是成為自己的練習。 ☀</footer>
+  <script>
+    const dateElement = document.getElementById('today-date');
+    const today = new Date();
+    dateElement.textContent = new Intl.DateTimeFormat('zh-TW', {
+      year:'numeric', month:'long', day:'numeric', weekday:'long'
+    }).format(today);
+
+    const taskList = document.getElementById('task-list');
+    const progress = document.getElementById('task-progress');
+    function updateTaskProgress() {
+      const tasks = [...taskList.querySelectorAll('.task-item')];
+      const completed = tasks.filter((task) => task.querySelector('.task-check').checked).length;
+      progress.textContent = `${completed} / ${tasks.length} 完成`;
+      tasks.forEach((task) => task.classList.toggle('is-done', task.querySelector('.task-check').checked));
+    }
+    function createActionButton(label, action, description) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `item-action${action.includes('delete') ? ' delete' : ''}`;
+      button.dataset.action = action;
+      button.textContent = label;
+      button.setAttribute('aria-label', description);
+      return button;
+    }
+
+    function addTaskActions(item) {
+      const actions = document.createElement('span');
+      actions.className = 'task-actions';
+      actions.append(
+        createActionButton('編輯', 'edit', '編輯待辦事項'),
+        createActionButton('刪除', 'delete', '刪除待辦事項')
+      );
+      item.append(actions);
+    }
+
+    taskList.addEventListener('change', (event) => {
+      if (event.target.matches('.task-check')) updateTaskProgress();
+    });
+    taskList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-action="edit"], [data-action="delete"], [data-action="save"], [data-action="cancel"]');
+      if (!button) return;
+      const item = button.closest('.task-item');
+      const copy = item.querySelector('.task-copy');
+
+      if (button.dataset.action === 'delete') {
+        item.remove();
+        updateTaskProgress();
+        return;
+      }
+      if (button.dataset.action === 'save' || button.dataset.action === 'cancel') {
+        const input = item.querySelector('.task-editor');
+        const copy = document.createElement('span');
+        copy.className = 'task-copy';
+        if (button.dataset.action === 'save') {
+          const text = input.value.trim();
+          if (!text) { input.focus(); return; }
+          copy.textContent = text;
+        } else {
+          copy.textContent = item.dataset.originalTask;
+        }
+        input.replaceWith(copy);
+        item.querySelector('[data-action="save"]').replaceWith(createActionButton('編輯', 'edit', '編輯待辦事項'));
+        item.querySelector('[data-action="cancel"]').replaceWith(createActionButton('刪除', 'delete', '刪除待辦事項'));
+        delete item.dataset.originalTask;
+        return;
+      }
+
+      item.dataset.originalTask = copy.textContent;
+      const input = document.createElement('input');
+      input.className = 'task-editor';
+      input.type = 'text';
+      input.maxLength = 80;
+      input.value = copy.textContent;
+      copy.replaceWith(input);
+      button.textContent = '儲存';
+      button.dataset.action = 'save';
+      button.setAttribute('aria-label', '儲存待辦事項');
+      button.nextElementSibling.textContent = '取消';
+      button.nextElementSibling.dataset.action = 'cancel';
+      input.focus();
+      input.select();
+    });
+    document.getElementById('task-form').addEventListener('submit', (event) => {
+      event.preventDefault();
+      const input = document.getElementById('new-task');
+      const taskName = input.value.trim();
+      if (!taskName) { input.focus(); return; }
+
+      const item = document.createElement('label');
+      item.className = 'task-item';
+      const checkbox = document.createElement('input');
+      checkbox.className = 'task-check';
+      checkbox.type = 'checkbox';
+      const copy = document.createElement('span');
+      copy.className = 'task-copy';
+      copy.textContent = taskName;
+      const tag = document.createElement('span');
+      tag.className = 'task-tag';
+      tag.textContent = '自訂';
+      item.append(checkbox, copy, tag);
+      addTaskActions(item);
+      taskList.append(item);
+      event.currentTarget.reset();
+      updateTaskProgress();
+      input.focus();
+    });
+    updateTaskProgress();
+
+    const form = document.getElementById('schedule-form');
+    const addedList = document.getElementById('added-list');
+
+    function createScheduleItem(timeValue, titleValue, placeValue, noteValue) {
+      const item = document.createElement('article');
+      item.className = 'added-item';
+      item.dataset.time = timeValue;
+      item.dataset.title = titleValue;
+      item.dataset.place = placeValue;
+      item.dataset.note = noteValue;
+
+      const time = document.createElement('time');
+      time.dateTime = timeValue;
+      time.textContent = timeValue;
+      const details = document.createElement('div');
+      const title = document.createElement('div');
+      title.className = 'added-title';
+      title.textContent = titleValue;
+      details.append(title);
+      const description = [placeValue, noteValue].filter(Boolean).join('・');
+      if (description) {
+        const place = document.createElement('div');
+        place.className = 'added-place';
+        place.textContent = description;
+        details.append(place);
+      }
+
+      const actions = document.createElement('span');
+      actions.className = 'schedule-actions';
+      actions.append(
+        createActionButton('編輯', 'edit-schedule', '編輯加碼行程'),
+        createActionButton('刪除', 'delete-schedule', '刪除加碼行程')
+      );
+      item.append(time, details, actions);
+      return item;
+    }
+
+    addedList.addEventListener('click', (event) => {
+      const button = event.target.closest('[data-action="edit-schedule"], [data-action="delete-schedule"], [data-action="save-schedule"], [data-action="cancel-schedule"]');
+      if (!button) return;
+      const item = button.closest('.added-item');
+
+      if (button.dataset.action === 'delete-schedule') {
+        item.remove();
+        if (!addedList.querySelector('.added-item')) {
+          const empty = document.createElement('p');
+          empty.id = 'empty-note';
+          empty.className = 'empty-note';
+          empty.textContent = '還沒有新增行程，安排一件期待的小事吧。';
+          addedList.append(empty);
+        }
+        return;
+      }
+
+      if (button.dataset.action === 'edit-schedule') {
+        item.dataset.previousTime = item.dataset.time;
+        item.dataset.previousTitle = item.dataset.title;
+        item.dataset.previousPlace = item.dataset.place;
+        item.dataset.previousNote = item.dataset.note;
+        const details = item.querySelector(':scope > div');
+        details.replaceChildren();
+        const fields = [
+          ['time', 'time', item.dataset.time],
+          ['title', 'text', item.dataset.title],
+          ['place', 'text', item.dataset.place],
+          ['note', 'text', item.dataset.note]
+        ];
+        fields.forEach(([name, type, value]) => {
+          const input = document.createElement('input');
+          input.className = 'schedule-editor';
+          input.type = type;
+          input.maxLength = name === 'title' ? 60 : 180;
+          input.placeholder = name === 'time' ? '時間' : name === 'title' ? '行程名稱' : name === 'place' ? '地點（選填）' : '備註（選填）';
+          input.value = value;
+          input.dataset.field = name;
+          input.required = name === 'time' || name === 'title';
+          details.append(input);
+        });
+        const actions = item.querySelector('.schedule-actions');
+        actions.replaceChildren(
+          createActionButton('儲存', 'save-schedule', '儲存加碼行程'),
+          createActionButton('取消', 'cancel-schedule', '取消編輯加碼行程')
+        );
+        details.querySelector('[data-field="time"]').focus();
+        return;
+      }
+
+      if (button.dataset.action === 'save-schedule') {
+        const values = Object.fromEntries([...item.querySelectorAll('[data-field]')].map((input) => [input.dataset.field, input.value.trim()]));
+        const timeInput = item.querySelector('[data-field="time"]');
+        const titleInput = item.querySelector('[data-field="title"]');
+        if (!timeInput.reportValidity()) return;
+        if (!titleInput.value.trim()) { titleInput.reportValidity(); return; }
+        const updated = createScheduleItem(values.time, values.title, values.place, values.note);
+        item.replaceWith(updated);
+        return;
+      }
+
+      const restored = createScheduleItem(item.dataset.previousTime, item.dataset.previousTitle, item.dataset.previousPlace, item.dataset.previousNote);
+      item.replaceWith(restored);
+    });
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      if (!form.reportValidity()) return;
+      const formData = new FormData(form);
+      const item = createScheduleItem(
+        formData.get('time'),
+        formData.get('title').trim(),
+        formData.get('place').trim(),
+        formData.get('note').trim()
+      );
+      addedList.querySelector('#empty-note')?.remove();
+      addedList.append(item);
+      form.reset();
+      document.getElementById('event-title').focus();
+    });
+  </script>
+</body>
+</html>
